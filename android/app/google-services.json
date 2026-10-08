@@ -1,0 +1,166 @@
+{
+  "project_info": {
+    "project_number": "382899224834",
+    "project_id": "renth-2ddf9",
+    "storage_bucket": "renth-2ddf9.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:382899224834:android:419efd80988cd87277421b",
+        "android_client_info": {
+          "package_name": "com.quicktech.renth_manager"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "382899224834-pu3lh769pu1h6o71a0qe7eeuv9quojbk.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.quicktech.renth_manager",
+            "certificate_hash": "282a046512833c1efa1fa6fbfa7c08330000fa13"
+          }
+        },
+        {
+          "client_id": "382899224834-6nnq4kgs0t8gqns9eper4mn0qvmq84t3.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAlOnWT2Rpdl3cQs2iaCGwClSJklV2dj2U"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "382899224834-6nnq4kgs0t8gqns9eper4mn0qvmq84t3.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "382899224834-60q5epa14s5kmedgeu74ejtbq5gjt1me.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.QuicktechIT.renth"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:382899224834:android:1cc9f3776ac5a85577421b",
+        "android_client_info": {
+          "package_name": "com.quicktech.renthpartner"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "382899224834-a8g4a0n4e2at44as2n56c5msj4rcc1f3.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.quicktech.renthpartner",
+            "certificate_hash": "40377a406517700c6f5a2eeeade07f1bd10e7959"
+          }
+        },
+        {
+          "client_id": "382899224834-b67ci85qg3to2g5uav1v2msn4jfaqcve.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.quicktech.renthpartner",
+            "certificate_hash": "282a046512833c1efa1fa6fbfa7c08330000fa13"
+          }
+        },
+        {
+          "client_id": "382899224834-6nnq4kgs0t8gqns9eper4mn0qvmq84t3.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAlOnWT2Rpdl3cQs2iaCGwClSJklV2dj2U"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "382899224834-6nnq4kgs0t8gqns9eper4mn0qvmq84t3.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "382899224834-60q5epa14s5kmedgeu74ejtbq5gjt1me.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.QuicktechIT.renth"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:382899224834:android:6597b4cf625fa22877421b",
+        "android_client_info": {
+          "package_name": "com.renth.new.quicktechIT"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "382899224834-avf2jvlger4i48so8ja41eeie60o2m7v.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.renth.new.quicktechIT",
+            "certificate_hash": "c6c727e04cf83d0bf9d1ae2646fc68a2bb41da16"
+          }
+        },
+        {
+          "client_id": "382899224834-ptd631cbfqoo0tc2qab5o28757n94tmd.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.renth.new.quicktechIT",
+            "certificate_hash": "4fadb036b3087d98574ae449b649a256cae0cf4f"
+          }
+        },
+        {
+          "client_id": "382899224834-uq1bian4d0k903htbscp9kpuq534i92q.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.renth.new.quicktechIT",
+            "certificate_hash": "282a046512833c1efa1fa6fbfa7c08330000fa13"
+          }
+        },
+        {
+          "client_id": "382899224834-6nnq4kgs0t8gqns9eper4mn0qvmq84t3.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAlOnWT2Rpdl3cQs2iaCGwClSJklV2dj2U"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "382899224834-6nnq4kgs0t8gqns9eper4mn0qvmq84t3.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "382899224834-60q5epa14s5kmedgeu74ejtbq5gjt1me.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.QuicktechIT.renth"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
