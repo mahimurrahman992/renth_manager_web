@@ -112,7 +112,7 @@ class ChatListMobileView extends StatelessWidget {
                           style: TextStyle(
                             fontSize: 24.sp,
                             fontWeight: FontWeight.w800,
-                            color: Colors.white,
+                            color: textColor,
                           ),
                         ),
                         2.verticalSpace,
@@ -120,7 +120,7 @@ class ChatListMobileView extends StatelessWidget {
                           'Chat with your customers',
                           style: TextStyle(
                             fontSize: 13.sp,
-                            color: Colors.white70,
+                            color: textColor,
                           ),
                         ),
                       ],

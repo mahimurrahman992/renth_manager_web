@@ -162,15 +162,17 @@ class _QuickTechPropertyListPageState extends State<QuickTechPropertyListPage> {
                     children: [
                       Row(
                         children: [
-                          Text(
-                            title,
-                            style: QuickTechAppTextStyle.headline4().copyWith(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: textColor,
+                          Flexible(
+                            child: Text(
+                              title,
+                              style: QuickTechAppTextStyle.headline4().copyWith(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: textColor,
+                              ),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
                             ),
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
                           ),
                           if (isComingSoon) ...[
                             const SizedBox(width: 8),

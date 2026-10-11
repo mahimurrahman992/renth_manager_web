@@ -577,16 +577,17 @@ class ChatUserAvatar extends StatelessWidget {
       child: SizedBox(
         width: size,
         height: size,
-        child: hasPhoto
-            ? WebSafeNetworkImage(
-                imageUrl: photo,
-                width: size,
-                height: size,
-                fit: BoxFit.cover,
-                isCircle: true,
-                errorWidget: fallback,
-              )
-            : fallback,
+        child:
+            hasPhoto
+                ? WebSafeNetworkImage(
+                  imageUrl: photo,
+                  width: size,
+                  height: size,
+                  fit: BoxFit.cover,
+                  isCircle: true,
+                  errorWidget: fallback,
+                )
+                : fallback,
       ),
     );
   }
@@ -606,15 +607,16 @@ class ChatBackButton extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.all(10),
           decoration: BoxDecoration(
-            color: light
-                ? Colors.white.withValues(alpha: 0.18)
-                : const Color(0xFFF3F4F6),
+            color:
+                light
+                    ? Colors.white.withValues(alpha: 0.18)
+                    : const Color(0xFFF3F4F6),
             borderRadius: BorderRadius.circular(12),
           ),
           child: Icon(
             Icons.arrow_back_ios_new_rounded,
             size: 18,
-            color: light ? Colors.white : const Color(0xFF111827),
+            color: light ? textColor : const Color(0xFF111827),
           ),
         ),
       ),

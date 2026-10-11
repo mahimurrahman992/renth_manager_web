@@ -362,7 +362,7 @@ class _QuickTechProfilePageState extends State<QuickTechProfilePage> {
                   width: double.infinity,
                   child: customButton2(
                     title: 'Save Profile Changes',
-                    icon: Icons.save_rounded,
+                    icon: Icons.save_rounded,iconColor: textColor,
                     onTap: () {
                       profileController.updateProfile();
                     },

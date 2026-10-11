@@ -74,7 +74,7 @@ class PackageMobileView extends StatelessWidget {
                           style: GoogleFonts.poppins(
                             fontSize: 24.sp,
                             fontWeight: FontWeight.w700,
-                            color: Colors.white,
+                            color: textColor,
                           ),
                         ),
                         2.verticalSpace,
@@ -82,7 +82,7 @@ class PackageMobileView extends StatelessWidget {
                           'Supercharge your business 🔥',
                           style: GoogleFonts.poppins(
                             fontSize: 13.sp,
-                            color: Colors.white70,
+                            color: textColor,
                           ),
                         ),
                       ],
@@ -729,7 +729,7 @@ class PackageBackButton extends StatelessWidget {
           child: Icon(
             Icons.arrow_back_ios_new_rounded,
             size: 18,
-            color: light ? Colors.white : const Color(0xFF111827),
+            color: light ? textColor : const Color(0xFF111827),
           ),
         ),
       ),

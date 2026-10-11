@@ -66,7 +66,7 @@ class HtmlMobileView extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 22.sp,
                         fontWeight: FontWeight.w800,
-                        color: Colors.white,
+                        color: textColor,
                       ),
                     ),
                   ),
@@ -344,7 +344,7 @@ class HtmlBackButton extends StatelessWidget {
           child: Icon(
             Icons.arrow_back_ios_new_rounded,
             size: 18,
-            color: light ? Colors.white : const Color(0xFF111827),
+            color: light ? textColor : const Color(0xFF111827),
           ),
         ),
       ),

@@ -205,7 +205,7 @@ Widget withdrawActionCard({required VoidCallback onWithdraw}) {
           title: 'Withdraw',
           onTap: onWithdraw,
           height: 44.h,
-          icon: Icons.arrow_outward,
+          icon: Icons.arrow_outward,iconColor: textColor,
           iconSize: 18.w,
           style: QuickTechAppTextStyle.bodyText3().copyWith(
             fontWeight: FontWeight.bold,

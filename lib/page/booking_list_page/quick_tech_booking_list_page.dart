@@ -74,7 +74,7 @@ class BookingMobileView extends StatelessWidget {
                           style: TextStyle(
                             fontSize: 24.sp,
                             fontWeight: FontWeight.w800,
-                            color: Colors.white,
+                            color: textColor,
                           ),
                         ),
                         2.verticalSpace,
@@ -82,7 +82,7 @@ class BookingMobileView extends StatelessWidget {
                           'Track fees and withdraw requests',
                           style: TextStyle(
                             fontSize: 13.sp,
-                            color: Colors.white70,
+                            color: textColor,
                           ),
                         ),
                       ],
@@ -669,7 +669,7 @@ class BookingBackButton extends StatelessWidget {
           child: Icon(
             Icons.arrow_back_ios_new_rounded,
             size: 18,
-            color: light ? Colors.white : const Color(0xFF111827),
+            color: light ? textColor : const Color(0xFF111827),
           ),
         ),
       ),
