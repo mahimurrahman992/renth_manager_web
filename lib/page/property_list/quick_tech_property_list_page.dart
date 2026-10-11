@@ -168,7 +168,7 @@ class _QuickTechPropertyListPageState extends State<QuickTechPropertyListPage> {
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
                               color: textColor,
-                            ),
+                            ),maxLines: 2,overflow: TextOverflow.ellipsis,
                           ),
                           if (isComingSoon) ...[
                             const SizedBox(width: 8),

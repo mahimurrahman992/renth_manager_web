@@ -22,7 +22,8 @@ class _RoomDetailsPageState extends State<RoomDetailsPage> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (controller.roomDetails.value.propertyRoom == null) {
+      if (controller.roomDetails.value.propertyRoom == null ||
+          controller.roomDetails.value.propertyRoom?.id != widget.roomId) {
         controller.fetchRoomDetails(widget.roomId);
       }
     });
@@ -941,47 +942,122 @@ class RoomDetailsMediaCard extends StatelessWidget {
                 ),
               ],
             ),
+            // Existing Images
             Obx(() {
-              final images =
-                  controller.roomDetails.value.propertyRoom?.roomImages ?? [];
+              final images = controller.existingImages;
               if (images.isEmpty) return const SizedBox.shrink();
 
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const SizedBox(height: 20),
-                  const RoomDetailsSubTitle(text: 'Existing Images'),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const RoomDetailsSubTitle(text: 'Existing Images'),
+                      Text(
+                        '${images.length} image${images.length > 1 ? 's' : ''}',
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: Color(0xFF6B7280),
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
                   const SizedBox(height: 10),
                   RoomDetailsImageGrid(
-                    children: images.map<Widget>((img) {
+                    children: List.generate(images.length, (index) {
+                      final img = images[index];
                       return RoomDetailsImageTile(
-                        onRemove: null,
+                        onRemove: () => controller.removeExistingImage(index),
                         child: WebSafeNetworkImage(
                           imageUrl: img.photoName,
                           fit: BoxFit.cover,
-                        ));
-                      //   Image.network(
-                      //     '${Api.imageUrl}${img.photoName}',
-                      //     fit: BoxFit.cover,
-                      //     errorBuilder: (context, error, stackTrace) {
-                      //       return Container(
-                      //         color: const Color(0xFFF3F4F6),
-                      //         child: const Icon(
-                      //           Icons.broken_image_outlined,
-                      //           color: Colors.grey,
-                      //         ),
-                      //       );
-                      //     },
-                      //   ),
-                      // );
-                    }).toList(),
+                        ),
+                      );
+                    }),
                   ),
                 ],
               );
             }),
+
+            // Video Preview (Selected or Existing)
             Obx(() {
-              final video = controller.selectedVideo.value;
-              if (video == null) return const SizedBox.shrink();
+              final selectedVideo = controller.selectedVideo.value;
+              final existingVideo = controller.existingVideo.value;
+
+              if (selectedVideo == null && existingVideo == null) {
+                return const SizedBox.shrink();
+              }
+
+              if (selectedVideo != null) {
+                return Padding(
+                  padding: const EdgeInsets.only(top: 16),
+                  child: Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFECFDF5),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: const Color(0xFFA7F3D0)),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(
+                          Icons.check_circle_rounded,
+                          color: Color(0xFF059669),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                existingVideo != null
+                                    ? 'New Video Selected (Replaces existing)'
+                                    : 'New Video Selected',
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                  color: Color(0xFF065F46),
+                                ),
+                              ),
+                              Text(
+                                selectedVideo.path.split('/').last,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                  fontSize: 13.5,
+                                  color: Color(0xFF374151),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        MouseRegion(
+                          cursor: SystemMouseCursors.click,
+                          child: GestureDetector(
+                            onTap: () => controller.removeSelectedVideo(),
+                            child: Container(
+                              padding: const EdgeInsets.all(4),
+                              decoration: const BoxDecoration(
+                                color: Colors.white,
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Icon(
+                                Icons.close_rounded,
+                                size: 16,
+                                color: Colors.red,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              }
 
               return Padding(
                 padding: const EdgeInsets.only(top: 16),
@@ -990,32 +1066,55 @@ class RoomDetailsMediaCard extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: const Color(0xFFF3F4F6),
                     borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: const Color(0xFFE5E7EB)),
                   ),
                   child: Row(
                     children: [
-                      const Icon(
-                        Icons.check_circle_rounded,
-                        color: Colors.green,
+                      Icon(
+                        Icons.videocam_rounded,
+                        color: mainColor,
                       ),
                       const SizedBox(width: 10),
                       Expanded(
-                        child: Text(
-                          'Video Selected: ${video.path.split('/').last}',
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                            fontSize: 13.5,
-                            color: Color(0xFF374151),
-                          ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Text(
+                              'Existing Video',
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                                color: Color(0xFF6B7280),
+                              ),
+                            ),
+                            Text(
+                              existingVideo!.split('/').last,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                fontSize: 13.5,
+                                color: Color(0xFF374151),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                       MouseRegion(
                         cursor: SystemMouseCursors.click,
                         child: GestureDetector(
-                          onTap: () => controller.selectedVideo.value = null,
-                          child: const Icon(
-                            Icons.close_rounded,
-                            color: Colors.red,
+                          onTap: () => controller.removeExistingVideo(),
+                          child: Container(
+                            padding: const EdgeInsets.all(4),
+                            decoration: const BoxDecoration(
+                              color: Colors.white,
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(
+                              Icons.close_rounded,
+                              size: 16,
+                              color: Colors.red,
+                            ),
                           ),
                         ),
                       ),
@@ -1024,6 +1123,8 @@ class RoomDetailsMediaCard extends StatelessWidget {
                 ),
               );
             }),
+
+            // New Images
             Obx(() {
               final images = controller.selectedImages;
               if (images.isEmpty) return const SizedBox.shrink();
@@ -1032,24 +1133,30 @@ class RoomDetailsMediaCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const SizedBox(height: 20),
-                  const RoomDetailsSubTitle(text: 'New Images'),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const RoomDetailsSubTitle(text: 'New Images'),
+                      Text(
+                        '${images.length} new image${images.length > 1 ? 's' : ''}',
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: Color(0xFF059669),
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
                   const SizedBox(height: 10),
                   RoomDetailsImageGrid(
                     children: List.generate(images.length, (index) {
                       return RoomDetailsImageTile(
-                        onRemove: () => controller.selectedImages.removeAt(
-                          index,
-                        ),
+                        onRemove: () => controller.removeSelectedImage(index),
                         child: kIsWeb
-                            ? 
-                            WebSafeNetworkImage(
+                            ? WebSafeNetworkImage(
                                 imageUrl: images[index].path,
                                 fit: BoxFit.cover,
                               )
-                            // Image.network(
-                            //     images[index].path,
-                            //       fit: BoxFit.cover,
-                            //     )
                             : Image.file(images[index], fit: BoxFit.cover),
                       );
                     }),
@@ -1362,8 +1469,8 @@ class RoomDetailsImageTile extends StatelessWidget {
                 onTap: onRemove,
                 child: Container(
                   padding: const EdgeInsets.all(4),
-                  decoration: const BoxDecoration(
-                    color: Colors.black54,
+                  decoration: BoxDecoration(
+                    color: Colors.black.withValues(alpha: 0.65),
                     shape: BoxShape.circle,
                   ),
                   child: const Icon(

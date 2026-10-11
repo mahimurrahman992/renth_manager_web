@@ -3,11 +3,13 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:renth_manager/consts/consts.dart';
-import 'package:renth_manager/model/response/quick_tech_room_details_response.dart' hide PropertyRoom;
+import 'package:renth_manager/model/response/quick_tech_room_details_response.dart'
+    hide PropertyRoom;
 import 'package:renth_manager/model/response/quickech_get_room_data.dart';
+import 'package:renth_manager/widgets/web_image.dart';
 
 class RoomDetailsController extends GetxController {
-var isLoading = false.obs;
+  var isLoading = false.obs;
   var roomDetails = QuicktechRoomDetails().obs;
   var errorMessage = ''.obs;
 
@@ -41,6 +43,8 @@ var isLoading = false.obs;
   // Media Reactive Variables
   var selectedVideo = Rxn<File>();
   var selectedImages = <File>[].obs;
+  var existingImages = <RoomImage>[].obs;
+  var existingVideo = Rxn<String>();
 
   final ImagePicker _picker = ImagePicker();
   final CommonController commonController = locator.get<CommonController>();
@@ -63,14 +67,16 @@ var isLoading = false.obs;
     }
   }
 
-// --- MEDIA PICKING METHODS WITH SOURCE ---
-  
+  // --- MEDIA PICKING METHODS WITH SOURCE ---
+
   // ইমেজ পিক করার মেথড
   Future<void> pickImages(ImageSource source) async {
     try {
       if (source == ImageSource.camera) {
         // ক্যামেরা দিয়ে একবারে একটি ছবিই তোলা যায়
-        final XFile? image = await _picker.pickImage(source: ImageSource.camera);
+        final XFile? image = await _picker.pickImage(
+          source: ImageSource.camera,
+        );
         if (image != null) {
           selectedImages.add(File(image.path)); // এক্সিস্টিং লিস্টে যোগ হবে
         }
@@ -92,7 +98,9 @@ var isLoading = false.obs;
     try {
       final XFile? video = await _picker.pickVideo(
         source: source,
-        maxDuration: const Duration(minutes: 5), // অপশনাল: ম্যাক্সিমাম ডিউরেশন সেট করতে পারেন
+        maxDuration: const Duration(
+          minutes: 5,
+        ), // অপশনাল: ম্যাক্সিমাম ডিউরেশন সেট করতে পারেন
       );
       if (video != null) {
         selectedVideo.value = File(video.path);
@@ -102,12 +110,123 @@ var isLoading = false.obs;
     }
   }
 
+  // --- MEDIA REMOVAL & HELPER METHODS ---
+
+  final Map<String, Uint8List> _existingImageBytesCache = {};
+
+  void _preFetchExistingImages() {
+    for (var img in existingImages) {
+      final rawUrl = img.photoName ?? '';
+      final resolvedUrl = WebSafeNetworkImage.resolveUrl(rawUrl);
+      if (resolvedUrl.isNotEmpty &&
+          !_existingImageBytesCache.containsKey(resolvedUrl)) {
+        _downloadImageBytes(resolvedUrl).then((bytes) {
+          if (bytes != null) {
+            debugPrint(
+              "✓ Pre-fetched existing image in background: $resolvedUrl (${bytes.length} bytes)",
+            );
+          }
+        });
+      }
+    }
+  }
+
+  void removeExistingImage(int index) {
+    if (existingImages.length + selectedImages.length <= 1) {
+      showErrorToast("At least one image is required");
+      return;
+    }
+    if (index >= 0 && index < existingImages.length) {
+      final removed = existingImages.removeAt(index);
+      final rawUrl = removed.photoName ?? '';
+      final resolvedUrl = WebSafeNetworkImage.resolveUrl(rawUrl);
+      _existingImageBytesCache.remove(resolvedUrl);
+    }
+  }
+
+  void removeSelectedImage(int index) {
+    if (existingImages.length + selectedImages.length <= 1) {
+      showErrorToast("At least one image is required");
+      return;
+    }
+    if (index >= 0 && index < selectedImages.length) {
+      selectedImages.removeAt(index);
+    }
+  }
+
+  void removeExistingVideo() {
+    existingVideo.value = null;
+  }
+
+  void removeSelectedVideo() {
+    selectedVideo.value = null;
+  }
+
+  Future<Uint8List?> _downloadImageBytes(String url) async {
+    // 1. Check in-memory cache first
+    if (_existingImageBytesCache.containsKey(url)) {
+      return _existingImageBytesCache[url];
+    }
+
+    // 2. Try direct download (works natively on Mobile/Desktop, and same-origin Web)
+    try {
+      final response = await http
+          .get(Uri.parse(url))
+          .timeout(const Duration(seconds: 15));
+      if (response.statusCode == 200) {
+        _existingImageBytesCache[url] = response.bodyBytes;
+        return response.bodyBytes;
+      }
+      debugPrint(
+        "Direct download returned status ${response.statusCode} for $url",
+      );
+    } catch (e) {
+      debugPrint("Direct download failed for $url (likely CORS on web): $e");
+    }
+
+    // 3. Fallback for Web CORS: fetch via CORS-enabled public proxies
+    if (kIsWeb) {
+      final proxies = [
+        'https://wsrv.nl/?url=${Uri.encodeComponent(url)}',
+        'https://images.weserv.nl/?url=${Uri.encodeComponent(url)}',
+      ];
+
+      for (var proxyUrl in proxies) {
+        try {
+          debugPrint("Attempting CORS-friendly fetch via proxy: $proxyUrl");
+          final response = await http
+              .get(Uri.parse(proxyUrl))
+              .timeout(const Duration(seconds: 15));
+          if (response.statusCode == 200) {
+            debugPrint(
+              "✓ Successfully downloaded image via proxy (${response.bodyBytes.length} bytes)",
+            );
+            _existingImageBytesCache[url] = response.bodyBytes;
+            return response.bodyBytes;
+          }
+        } catch (e) {
+          debugPrint("Proxy download failed on $proxyUrl: $e");
+        }
+      }
+    }
+
+    return null;
+  }
+
   int parsePrice(String value) {
     return int.tryParse(value.replaceAll(',', '').trim()) ?? 0;
   }
+
   // --- API UPDATE METHOD ---
   Future<void> updateRoomDetails(int roomId) async {
     final category = selectedProperty.value?.propertyCategory?.name ?? "Hotel";
+
+    // Validation: Minimum 1 image requirement
+    final totalImages = existingImages.length + selectedImages.length;
+    if (totalImages < 1) {
+      showErrorToast("At least one image is required");
+      return;
+    }
 
     // Validation
     if (selectedProperty.value == null) {
@@ -121,8 +240,7 @@ var isLoading = false.obs;
         hint = 'flat name';
       } else if (category == 'Family Home') {
         hint = 'home name';
-      }
-      else if (category == 'Rider') {
+      } else if (category == 'Rider') {
         hint = 'rider name';
       }
       showErrorToast("Enter $hint");
@@ -140,7 +258,9 @@ var isLoading = false.obs;
       return;
     }
 
-    if (category != 'Flat Sale/Buy' && category != 'Rider' && selectedBedType.value == null) {
+    if (category != 'Flat Sale/Buy' &&
+        category != 'Rider' &&
+        selectedBedType.value == null) {
       showErrorToast("Select bed type");
       return;
     }
@@ -149,7 +269,10 @@ var isLoading = false.obs;
       String hint = 'room price';
       if (category == 'Flat Sale/Buy') {
         hint = 'sale price';
-      } else if (category == 'Family Home' || category == 'Bachelor' || category == 'Hostel' || category == 'Rider') {
+      } else if (category == 'Family Home' ||
+          category == 'Bachelor' ||
+          category == 'Hostel' ||
+          category == 'Rider') {
         hint = 'monthly rent';
       }
       showErrorToast("Enter $hint");
@@ -213,26 +336,44 @@ var isLoading = false.obs;
         'property_room_id': roomId.toString(),
         'property_id': selectedProperty.value!.id.toString(),
         'room_type_id': selectedRoomType.value!.id.toString(),
-        'bed_type_id': (category == 'Flat Sale/Buy' || category == 'Rider') ? '0' : selectedBedType.value?.id.toString() ?? '0',
+        'bed_type_id':
+            (category == 'Flat Sale/Buy' || category == 'Rider')
+                ? '0'
+                : selectedBedType.value?.id.toString() ?? '0',
         'room_name': roomNameController.text.trim(),
-        'room_price_per_night': parsePrice(roomPriceController.text.trim()).toString(),
-        'capacity_of_adults': category == 'Rider' ? '0' : capacityAdultsController.text.trim(),
-        'capacity_of_children': category == 'Hotel' ? capacityChildrenController.text.trim() : '0',
+        'room_price_per_night':
+            parsePrice(roomPriceController.text.trim()).toString(),
+        'capacity_of_adults':
+            category == 'Rider' ? '0' : capacityAdultsController.text.trim(),
+        'capacity_of_children':
+            category == 'Hotel' ? capacityChildrenController.text.trim() : '0',
         'room_size': roomSizeController.text.trim(),
         'room_description': roomDescriptionController.text.trim(),
         'number_of_room': numberOfRoomController.text.trim(),
-        'extra_price_per_adult': category == 'Hotel' ? parsePrice(extraPriceAdultController.text.trim()).toString() : '0',
-        'extra_price_per_child_bed': category == 'Hotel' ? parsePrice(extraPriceChildController.text.trim()).toString() : '0',
-        'discount_price_per_night': parsePrice(discountPriceController.text.trim()).toString(),
-        'extra_mattress_price_per_night': category == 'Hotel' ? parsePrice(extraMattressPriceController.text.trim()).toString() : '0',
+        'extra_price_per_adult':
+            category == 'Hotel'
+                ? parsePrice(extraPriceAdultController.text.trim()).toString()
+                : '0',
+        'extra_price_per_child_bed':
+            category == 'Hotel'
+                ? parsePrice(extraPriceChildController.text.trim()).toString()
+                : '0',
+        'discount_price_per_night':
+            parsePrice(discountPriceController.text.trim()).toString(),
+        'extra_mattress_price_per_night':
+            category == 'Hotel'
+                ? parsePrice(
+                  extraMattressPriceController.text.trim(),
+                ).toString()
+                : '0',
         'vat_percentage': vatPercentageController.text.trim(),
         'service_charge': serviceChargeController.text.trim(),
       });
 
       // Facility IDs Mapping as Multiple Key-Value Pairs (Hotel only)
       if (category == 'Hotel') {
-        for (var id in selectedFacilityIds) {
-          request.fields.addAll({'facilityIds[]': id.toString()});
+        for (var i = 0; i < selectedFacilityIds.length; i++) {
+          request.fields['facilityIds[$i]'] = selectedFacilityIds[i].toString();
         }
       }
 
@@ -259,34 +400,98 @@ var isLoading = false.obs;
         debugPrint("✓ Video attached to request");
       }
 
-      // Add Multiple Images (If picked)
-      for (var i = 0; i < selectedImages.length; i++) {
-        if (kIsWeb) {
-          final xfile = XFile(selectedImages[i].path);
-          final bytes = await xfile.readAsBytes();
-          request.files.add(
-            http.MultipartFile.fromBytes(
-              'multi_img[]',
-              bytes,
-              filename: xfile.name.isNotEmpty ? xfile.name : 'room_img_$i.jpg',
+      // Add Multiple Images
+      // Backend replaces all images if multi_img[] is present.
+      // If image set changed (any existing removed or any new added), send all remaining + new images.
+      final initialImages = roomDetails.value.propertyRoom?.roomImages ?? [];
+      final bool hasExistingRemoved =
+          existingImages.length != initialImages.length ||
+          !existingImages.every(
+            (e) => initialImages.any(
+              (init) =>
+                  (init.id != null && init.id == e.id) ||
+                  (init.photoName != null && init.photoName == e.photoName),
             ),
           );
-        } else {
-          request.files.add(
-            await http.MultipartFile.fromPath(
-              'multi_img[]',
-              selectedImages[i].path,
-            ),
+      final bool hasNewImages = selectedImages.isNotEmpty;
+      final bool imageSetChanged = hasExistingRemoved || hasNewImages;
+
+      if (imageSetChanged) {
+        debugPrint(
+          "Images changed. Preparing ${existingImages.length} existing and ${selectedImages.length} new images...",
+        );
+
+        // 1. Download existing images in parallel
+        if (existingImages.isNotEmpty) {
+          final List<Uint8List?> downloadedBytes = await Future.wait(
+            existingImages.map((img) async {
+              final rawUrl = img.photoName ?? '';
+              final resolvedUrl = WebSafeNetworkImage.resolveUrl(rawUrl);
+              if (resolvedUrl.isEmpty) return null;
+              return await _downloadImageBytes(resolvedUrl);
+            }),
           );
+
+          for (var i = 0; i < downloadedBytes.length; i++) {
+            final bytes = downloadedBytes[i];
+            if (bytes == null) {
+              showErrorToast(
+                "Failed to process existing images. Please try again.",
+              );
+              isLoading(false);
+              return;
+            }
+            final rawUrl = existingImages[i].photoName ?? '';
+            String fileName = rawUrl.split('/').last;
+            if (fileName.isEmpty || !fileName.contains('.')) {
+              fileName = 'existing_img_$i.jpg';
+            }
+            request.files.add(
+              http.MultipartFile.fromBytes(
+                'multi_img[]',
+                bytes,
+                filename: fileName,
+              ),
+            );
+          }
         }
-      }
-      if (selectedImages.isNotEmpty) {
-        debugPrint("✓ ${selectedImages.length} images attached to request");
+
+        // 2. Add newly selected images
+        for (var i = 0; i < selectedImages.length; i++) {
+          if (kIsWeb) {
+            final xfile = XFile(selectedImages[i].path);
+            final bytes = await xfile.readAsBytes();
+            request.files.add(
+              http.MultipartFile.fromBytes(
+                'multi_img[]',
+                bytes,
+                filename:
+                    xfile.name.isNotEmpty ? xfile.name : 'new_room_img_$i.jpg',
+              ),
+            );
+          } else {
+            request.files.add(
+              await http.MultipartFile.fromPath(
+                'multi_img[]',
+                selectedImages[i].path,
+              ),
+            );
+          }
+        }
+        debugPrint(
+          "✓ Total ${request.files.where((f) => f.field == 'multi_img[]').length} images attached to request",
+        );
+      } else {
+        debugPrint(
+          "No image changes detected. Keeping existing images untouched in database.",
+        );
       }
 
       // Send Request
       debugPrint("Sending update request...");
-      http.StreamedResponse response = await request.send().timeout(const Duration(seconds: 30));
+      http.StreamedResponse response = await request.send().timeout(
+        const Duration(seconds: 30),
+      );
 
       if (response.statusCode == 200) {
         String responseBody = await response.stream.bytesToString();
@@ -295,9 +500,12 @@ var isLoading = false.obs;
         Get.back(result: true); // রিলোড সিগন্যালসহ ব্যাক করবে
       } else {
         String errorBody = await response.stream.bytesToString();
-        debugPrint("Failed to update: Status ${response.statusCode}, Body: $errorBody");
-        
-        String errorMsg = "Failed to update room. Status: ${response.statusCode}";
+        debugPrint(
+          "Failed to update: Status ${response.statusCode}, Body: $errorBody",
+        );
+
+        String errorMsg =
+            "Failed to update room. Status: ${response.statusCode}";
         try {
           final decoded = jsonDecode(errorBody);
           errorMsg = decoded['message'] ?? decoded['error'] ?? errorMsg;
@@ -325,23 +533,25 @@ var isLoading = false.obs;
 
       final url = Api.roomDetails(roomId);
       final token = GetStorage().read(StorageKeys.accessToken);
-debugPrint(url);
-      final response = await http.get(
-        Uri.parse(url),
-        headers: {
-          'Authorization': "Bearer $token",
-          'Accept': 'application/json',
-        },
-      ).timeout(const Duration(seconds: 15));
+      debugPrint(url);
+      final response = await http
+          .get(
+            Uri.parse(url),
+            headers: {
+              'Authorization': "Bearer $token",
+              'Accept': 'application/json',
+            },
+          )
+          .timeout(const Duration(seconds: 15));
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         roomDetails.value = QuicktechRoomDetails.fromJson(data);
-        
+
         // Populate all controllers and select dropdowns
         await Future.delayed(const Duration(milliseconds: 100));
         _populateControllers();
-        
+
         debugPrint("✓ Room details fetched and populated successfully");
       } else {
         errorMessage.value = "Error: ${response.statusCode}";
@@ -365,7 +575,8 @@ debugPrint(url);
       roomNameController.text = room.roomName ?? '';
       roomPriceController.text = room.roomPricePerNight ?? '';
       capacityAdultsController.text = room.capacityOfAdults?.toString() ?? '';
-      capacityChildrenController.text = room.capacityOfChildren?.toString() ?? '';
+      capacityChildrenController.text =
+          room.capacityOfChildren?.toString() ?? '';
       roomSizeController.text = room.roomSize ?? '';
       roomDescriptionController.text = room.roomDescription ?? '';
       numberOfRoomController.text = room.numberOfRoom?.toString() ?? '';
@@ -409,12 +620,27 @@ debugPrint(url);
 
       // Facilities
       if (room.facilities != null && room.facilities!.isNotEmpty) {
-        selectedFacilityIds.value = room.facilities!
-            .map((f) => f.id ?? 0)
-            .where((id) => id != 0)
-            .toList();
+        selectedFacilityIds.value =
+            room.facilities!
+                .map((f) => f.id ?? 0)
+                .where((id) => id != 0)
+                .toList();
         debugPrint("✓ Facilities selected: ${selectedFacilityIds.length}");
       }
+
+      // Existing Images & Video
+      existingImages.assignAll(room.roomImages ?? []);
+      _existingImageBytesCache.clear();
+      _preFetchExistingImages();
+
+      final videoStr = room.video?.toString().trim();
+      if (videoStr != null && videoStr.isNotEmpty && videoStr != 'null') {
+        existingVideo.value = videoStr;
+      } else {
+        existingVideo.value = null;
+      }
+      selectedImages.clear();
+      selectedVideo.value = null;
     }
   }
 
@@ -444,6 +670,11 @@ debugPrint(url);
     selectedRoomType.value = null;
     selectedBedType.value = null;
     selectedFacilityIds.clear();
+    selectedImages.clear();
+    selectedVideo.value = null;
+    existingImages.clear();
+    existingVideo.value = null;
+    _existingImageBytesCache.clear();
   }
 
   @override
