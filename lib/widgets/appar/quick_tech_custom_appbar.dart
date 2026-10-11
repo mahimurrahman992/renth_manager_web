@@ -530,7 +530,7 @@ class _WebDesktopAppbar extends StatelessWidget {
                   ConstrainedBox(
                     constraints: const BoxConstraints(maxWidth: 90),
                     child: Text(
-                      user?.name ?? 'Manager',
+                      user?.name ?? 'Partner',
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: QuickTechAppTextStyle.bodyBold3().copyWith(

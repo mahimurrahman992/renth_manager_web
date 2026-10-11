@@ -420,7 +420,7 @@ class _SidebarContent extends StatelessWidget {
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    user?.phone ?? user?.email ?? 'Verified Manager',
+                    user?.phone ?? user?.email ?? 'Verified Partner',
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: QuickTechAppTextStyle.caption().copyWith(
@@ -544,7 +544,7 @@ class _SidebarContent extends StatelessWidget {
                   fontSize: 16,
                 ),
                 middleText:
-                    'Are you sure you want to log out from Renth Manager?',
+                    'Are you sure you want to log out from Renth Partner?',
                 middleTextStyle: const TextStyle(
                   color: Colors.black87,
                   fontSize: 13,

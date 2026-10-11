@@ -1,6 +1,6 @@
 {
-    "name": "renth_manager",
-    "short_name": "renth_manager",
+    "name": "renth_partner",
+    "short_name": "renth_partner",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

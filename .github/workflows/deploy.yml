@@ -32,7 +32,7 @@ jobs:
         run: flutter pub get
 
       - name: Build Flutter Web
-        run: flutter build web --release --base-href "/renth_manager_web/"
+        run: flutter build web --release --base-href "/renth_partner_web/"
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
