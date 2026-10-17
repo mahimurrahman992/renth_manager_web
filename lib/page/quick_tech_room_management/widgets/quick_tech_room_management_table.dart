@@ -73,7 +73,7 @@ class _QuickTechRoomManagementTableState
                     ],
                     rows:
                         rooms.map((room) {
-                          final int? roomId = room.propertyRoom?.id;
+                          final int? roomId = room.id;
                           final int roomTypeId =
                               room.roomTypeId ?? room.roomType?.id ?? 0;
                           final int propId =
@@ -219,15 +219,13 @@ class _QuickTechRoomManagementTableState
         tooltip: 'Delete Room',
         padding: const EdgeInsets.all(8),
         constraints: const BoxConstraints(),
-        icon: const Icon(
-          Icons.delete_outline_rounded,
-          color: Colors.redAccent,
-        ),
+        icon: const Icon(Icons.delete_outline_rounded, color: Colors.redAccent),
       ),
     );
   }
 
   Widget _detailsButton(int roomId) {
+    debugPrint("ROom ID :$roomId");
     return OutlinedButton.icon(
       onPressed:
           roomId > 0
@@ -273,4 +271,3 @@ class _QuickTechRoomManagementTableState
     }
   }
 }
-

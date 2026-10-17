@@ -15,10 +15,156 @@ class _QuickTechPropertyListPageState extends State<QuickTechPropertyListPage> {
   final commonController = locator.get<CommonController>();
   final editPropertyController = locator.get<EditPropertyController>();
 
-  Widget _buildBody(BuildContext context) {
+  // ---------------------------------------------------------------------------
+  // ACTIONS (same logic for mobile / tablet / desktop)
+  // ---------------------------------------------------------------------------
+
+  Future<void> _onAddProperty() async {
+    await commonController.fetchPropertyCategories();
+    Get.toNamed(AppRoutes.addNewProperty);
+    //Get.to(() => const QuickTechAddNewPropertyScreen());
+  }
+
+  void _onAddRoom() {
     final properties =
         editPropertyController.propertyList.value.properties ?? [];
+    if (properties.isNotEmpty) {
+      Get.toNamed(AppRoutes.addRoom);
+      // Get.to(() => const QuickTechAddRoomScreen());
+    } else {
+      Get.snackbar(
+        'Action Required',
+        'Please register a property first before adding individual rooms.',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.black87,
+        colorText: Colors.white,
+      );
+    }
+  }
 
+  void _onAddVehicle() {
+    Get.snackbar(
+      'Upcoming Feature',
+      'Vehicle rental management will be released in an upcoming update.',
+      snackPosition: SnackPosition.BOTTOM,
+      backgroundColor: Colors.black87,
+      colorText: Colors.white,
+    );
+  }
+
+  // ---------------------------------------------------------------------------
+  // BODY (mobile < 600 = new UI, tablet/desktop = original UI)
+  // ---------------------------------------------------------------------------
+
+  Widget _buildBody(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        if (constraints.maxWidth < 600) {
+          return _buildMobileBody();
+        }
+        return _buildTabletDesktopBody();
+      },
+    );
+  }
+
+  // ===========================================================================
+  // MOBILE (new UI)
+  // ===========================================================================
+
+  Widget _buildMobileBody() {
+    return SingleChildScrollView(
+      padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 16.h),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'List Your Property',
+            style: QuickTechAppTextStyle.headline3().copyWith(
+              fontSize: 18,
+              fontWeight: FontWeight.w600,
+              color: textColor,
+            ),
+          ),
+
+          40.verticalSpace,
+
+          _buildMobileActionButton(
+            label: 'Add New Property',
+            icon: Icons.add_home_rounded,
+            onTap: _onAddProperty,
+          ),
+
+          14.verticalSpace,
+
+          _buildMobileActionButton(
+            label: 'Add New Room',
+            icon: Icons.home_work_rounded,
+            onTap: _onAddRoom,
+          ),
+
+          14.verticalSpace,
+
+          _buildMobileActionButton(
+            label: 'Add New Vehicle',
+            icon: CupertinoIcons.car_detailed,
+            onTap: _onAddVehicle,
+          ),
+
+          40.verticalSpace,
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMobileActionButton({
+    required String label,
+    required IconData icon,
+    required VoidCallback onTap,
+  }) {
+    return Material(
+      color: mainColor,
+      elevation: 4,
+      shadowColor: Colors.black.withValues(alpha: 0.3),
+      borderRadius: BorderRadius.circular(16),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: Container(
+          width: double.infinity,
+          height: 78,
+          alignment: Alignment.center,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(9),
+                decoration: const BoxDecoration(
+                  color: Colors.black,
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(icon, size: 22, color: mainColor),
+              ),
+              const SizedBox(width: 14),
+              Text(
+                label,
+                style: const TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.black87,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  // ===========================================================================
+  // TABLET / DESKTOP (original UI)
+  // ===========================================================================
+
+  Widget _buildTabletDesktopBody() {
     return SingleChildScrollView(
       padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 20.h),
       child: Center(
@@ -52,11 +198,7 @@ class _QuickTechPropertyListPageState extends State<QuickTechPropertyListPage> {
                     'Register an entire hotel, apartment building, family home, or guest house.',
                 icon: Icons.add_business_rounded,
                 accentColor: mainColor,
-                onTap: () async {
-                  await commonController.fetchPropertyCategories();
-                  Get.toNamed(AppRoutes.addNewProperty);
-                  //Get.to(() => const QuickTechAddNewPropertyScreen());
-                },
+                onTap: _onAddProperty,
               ),
 
               16.verticalSpace,
@@ -67,20 +209,7 @@ class _QuickTechPropertyListPageState extends State<QuickTechPropertyListPage> {
                     'Add individual rentable rooms, suites, or flats to your registered properties.',
                 icon: Icons.meeting_room_rounded,
                 accentColor: const Color(0xFF3B82F6),
-                onTap: () {
-                  if (properties.isNotEmpty) {
-                    Get.toNamed(AppRoutes.addRoom);
-                    // Get.to(() => const QuickTechAddRoomScreen());
-                  } else {
-                    Get.snackbar(
-                      'Action Required',
-                      'Please register a property first before adding individual rooms.',
-                      snackPosition: SnackPosition.BOTTOM,
-                      backgroundColor: Colors.black87,
-                      colorText: Colors.white,
-                    );
-                  }
-                },
+                onTap: _onAddRoom,
               ),
 
               16.verticalSpace,
@@ -92,15 +221,7 @@ class _QuickTechPropertyListPageState extends State<QuickTechPropertyListPage> {
                 icon: CupertinoIcons.car_detailed,
                 accentColor: const Color(0xFF8B5CF6),
                 isComingSoon: false,
-                onTap: () {
-                  Get.snackbar(
-                    'Upcoming Feature',
-                    'Vehicle rental management will be released in an upcoming update.',
-                    snackPosition: SnackPosition.BOTTOM,
-                    backgroundColor: Colors.black87,
-                    colorText: Colors.white,
-                  );
-                },
+                onTap: _onAddVehicle,
               ),
 
               40.verticalSpace,

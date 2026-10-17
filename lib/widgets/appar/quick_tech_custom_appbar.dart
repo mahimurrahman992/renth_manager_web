@@ -129,7 +129,7 @@ class _MobileAppbar extends StatelessWidget {
               width: 38,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: backgroundColor,
+                color: mainColor,
                 border: Border.all(color: borderColor),
               ),
               child: Icon(icon, size: 20, color: textColor),
@@ -462,7 +462,7 @@ class _WebDesktopAppbar extends StatelessWidget {
                 height: 38,
                 width: 38,
                 decoration: BoxDecoration(
-                  color: backgroundColor,
+                  color: mainColor,
                   shape: BoxShape.circle,
                   border: Border.all(color: borderColor),
                 ),

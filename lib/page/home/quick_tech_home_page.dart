@@ -77,6 +77,7 @@ class _QuickTechHomePageState extends State<QuickTechHomePage> {
       builder: (context, constraints) {
         final isDesktop = constraints.maxWidth >= 1024;
         final isTablet = constraints.maxWidth >= 600 && constraints.maxWidth < 1024;
+        final isMobile = constraints.maxWidth < 600;
         final horizontalPadding = isDesktop ? 24.0 : (isTablet ? 16.0 : 12.0);
 
         return RefreshIndicator(
@@ -86,85 +87,375 @@ class _QuickTechHomePageState extends State<QuickTechHomePage> {
             controller: dashboardController.scrollController,
             physics: const AlwaysScrollableScrollPhysics(),
             padding: EdgeInsets.symmetric(horizontal: horizontalPadding, vertical: 16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // 1. TOP HERO GREETING & QUICK ACTION BAR
-                customHeroBanner(isDesktop, isTablet),
-
-                const SizedBox(height: 18),
-
-                // 2. FINANCIAL & PROPERTY SWITCHER ROW
-                customPropertyAndFinanceRow(isDesktop, isTablet),
-
-                const SizedBox(height: 24),
-
-                // 3. DASHBOARD METRICS / KPI GRID
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Row(
-                      children: [
-                        Container(
-                          width: 4,
-                          height: 18,
-                          decoration: BoxDecoration(
-                            color: mainColorDark,
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          'Performance Overview',
-                          style: QuickTechAppTextStyle.headline3().copyWith(
-                            fontSize: 17,
-                            fontWeight: FontWeight.w700,
-                            color: textColor,
-                          ),
-                        ),
-                      ],
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.refresh_rounded, size: 20, color: textMuted),
-                      tooltip: 'Refresh Metrics',
-                      onPressed: _onRefresh,
-                    ),
-                  ],
-                ),
-
-                const SizedBox(height: 12),
-
-                const QuickTechHomeDashboardOverview(),
-
-                const SizedBox(height: 28),
-
-                // 4. RECENT BOOKINGS SECTION & TABLE
-                QuickTechRecentBookingTable(),
-
-                const SizedBox(height: 16),
-
-                // Pagination Loader
-                Obx(() {
-                  if (dashboardController.isMoreLoading.value) {
-                    return const Center(
-                      child: Padding(
-                        padding: EdgeInsets.all(16.0),
-                        child: CircularProgressIndicator(color: mainColor),
-                      ),
-                    );
-                  }
-                  return const SizedBox.shrink();
-                }),
-
-                const SizedBox(height: 40),
-              ],
-            ),
+            child: isMobile
+                ? _buildMobileContent()
+                : _buildTabletDesktopContent(isDesktop, isTablet),
           ),
         );
       },
     );
   }
 
+  // ---------------------------------------------------------------------------
+  // MOBILE CONTENT (new UI)
+  // ---------------------------------------------------------------------------
+
+  Widget _buildMobileContent() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // 1. AVAILABLE BALANCE CARD
+        _buildMobileWalletCard(),
+
+        const SizedBox(height: 14),
+
+        // 2. SELECT PROPERTY DROPDOWN
+        _buildMobilePropertyCard(),
+
+        const SizedBox(height: 22),
+
+        // 3. DASHBOARD OVERVIEW
+        Text(
+          'Dashboard Overview',
+          style: QuickTechAppTextStyle.headline3().copyWith(
+            fontSize: 20,
+            fontWeight: FontWeight.w700,
+            color: textColor,
+          ),
+        ),
+
+        const SizedBox(height: 12),
+
+        const QuickTechHomeDashboardOverview(),
+
+        const SizedBox(height: 28),
+
+        // 4. RECENT BOOKINGS SECTION & TABLE
+        QuickTechRecentBookingTable(),
+
+        const SizedBox(height: 16),
+
+        _buildPaginationLoader(),
+
+        const SizedBox(height: 40),
+      ],
+    );
+  }
+
+  // ---------------------------------------------------------------------------
+  // TABLET / DESKTOP CONTENT (original UI)
+  // ---------------------------------------------------------------------------
+
+  Widget _buildTabletDesktopContent(bool isDesktop, bool isTablet) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // 1. TOP HERO GREETING & QUICK ACTION BAR
+        customHeroBanner(isDesktop, isTablet),
+
+        const SizedBox(height: 18),
+
+        // 2. FINANCIAL & PROPERTY SWITCHER ROW
+        customPropertyAndFinanceRow(isDesktop, isTablet),
+
+        const SizedBox(height: 24),
+
+        // 3. DASHBOARD METRICS / KPI GRID
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Row(
+              children: [
+                Container(
+                  width: 4,
+                  height: 18,
+                  decoration: BoxDecoration(
+                    color: mainColorDark,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  'Performance Overview',
+                  style: QuickTechAppTextStyle.headline3().copyWith(
+                    fontSize: 17,
+                    fontWeight: FontWeight.w700,
+                    color: textColor,
+                  ),
+                ),
+              ],
+            ),
+            IconButton(
+              icon: const Icon(Icons.refresh_rounded, size: 20, color: textMuted),
+              tooltip: 'Refresh Metrics',
+              onPressed: _onRefresh,
+            ),
+          ],
+        ),
+
+        const SizedBox(height: 12),
+
+        const QuickTechHomeDashboardOverview(),
+
+        const SizedBox(height: 28),
+
+        // 4. RECENT BOOKINGS SECTION & TABLE
+        QuickTechRecentBookingTable(),
+
+        const SizedBox(height: 16),
+
+        _buildPaginationLoader(),
+
+        const SizedBox(height: 40),
+      ],
+    );
+  }
+
+  Widget _buildPaginationLoader() {
+    return Obx(() {
+      if (dashboardController.isMoreLoading.value) {
+        return const Center(
+          child: Padding(
+            padding: EdgeInsets.all(16.0),
+            child: CircularProgressIndicator(color: mainColor),
+          ),
+        );
+      }
+      return const SizedBox.shrink();
+    });
+  }
+
+  // ===========================================================================
+  // MOBILE WIDGETS (new UI)
+  // ===========================================================================
+
+  Widget _buildMobilePropertyCard() {
+    return Obx(() {
+      final properties = editPropertyController.propertyList.value.properties ?? [];
+      final selected = editPropertyController.selectedProperty.value;
+
+      return Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        decoration: BoxDecoration(
+          color: mainColor,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: mainColorDark.withValues(alpha: 0.5)),
+        ),
+        child: DropdownButtonHideUnderline(
+          child: DropdownButton<Properties>(
+            isExpanded: true,
+            dropdownColor: Colors.white,
+            borderRadius: BorderRadius.circular(10),
+            value: properties.any((e) => e.id == selected?.id) ? selected : null,
+            hint: const Text(
+              'Select Property',
+              style: TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.w600,
+                color: Colors.black87,
+              ),
+            ),
+            icon: const Icon(Icons.arrow_drop_down_rounded, color: Colors.black87, size: 36),
+            selectedItemBuilder: (context) {
+              return properties.map((prop) {
+                return Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    prop.title ?? '',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.black87,
+                    ),
+                  ),
+                );
+              }).toList();
+            },
+            items: properties.map((prop) {
+              return DropdownMenuItem<Properties>(
+                value: prop,
+                child: Text(
+                  prop.title ?? '',
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Colors.black87),
+                ),
+              );
+            }).toList(),
+            onChanged: (Properties? prop) async {
+              if (prop == null) return;
+              editPropertyController.selectedProperty.value = prop;
+              GetStorage().write(StorageKeys.selectedPropertyId, prop.id);
+              if (prop.id != null) {
+                await roomController.fetchRoomRecords(propertyId: prop.id!);
+              }
+            },
+          ),
+        ),
+      );
+    });
+  }
+
+  Widget _buildMobileWalletCard() {
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [mainColor, Color(0xFFFFD500)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: mainColor.withValues(alpha: 0.35),
+            blurRadius: 14,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(24),
+        child: Stack(
+          children: [
+            // Soft highlight circle (top right)
+            Positioned(
+              top: -50,
+              right: -40,
+              child: Container(
+                width: 170,
+                height: 170,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.white.withValues(alpha: 0.22),
+                ),
+              ),
+            ),
+
+            // Big taka watermark
+            Positioned(
+              right: 20,
+              bottom: -14,
+              child: Text(
+                '৳',
+                style: TextStyle(
+                  fontSize: 120,
+                  fontWeight: FontWeight.w700,
+                  color: const Color(0xFFB89A00).withValues(alpha: 0.35),
+                ),
+              ),
+            ),
+
+            Padding(
+              padding: const EdgeInsets.all(18),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: Colors.black.withValues(alpha: 0.08),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: const Icon(
+                          Icons.account_balance_wallet_rounded,
+                          color: Colors.black87,
+                          size: 22,
+                        ),
+                      ),
+                      const SizedBox(width: 14),
+                      const Expanded(
+                        child: Text(
+                          'Available Balance',
+                          style: TextStyle(
+                            fontSize: 17,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.black87,
+                          ),
+                        ),
+                      ),
+                      MouseRegion(
+                        cursor: SystemMouseCursors.click,
+                        child: GestureDetector(
+                          onTap: () => dashboardController.isBalanceVisible.value =
+                              !dashboardController.isBalanceVisible.value,
+                          child: Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: Colors.white.withValues(alpha: 0.45),
+                            ),
+                            child: Obx(
+                              () => Icon(
+                                dashboardController.isBalanceVisible.value
+                                    ? Icons.visibility_outlined
+                                    : Icons.visibility_off_outlined,
+                                size: 22,
+                                color: Colors.black87,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 22),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Flexible(
+                        child: Obx(() {
+                          final isVisible = dashboardController.isBalanceVisible.value;
+                          final revenue = dashboardController.dashboard.value.totalRevenue ?? '0';
+
+                          return Text(
+                            isVisible ? '৳ $revenue' : '৳ ••••••',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              fontSize: 40,
+                              fontWeight: FontWeight.w700,
+                              color: Colors.black87,
+                              height: 1.1,
+                            ),
+                          );
+                        }),
+                      ),
+                      const SizedBox(width: 10),
+                      Container(
+                        margin: const EdgeInsets.only(bottom: 8),
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: Colors.black.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: const Text(
+                          'BDT',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.black87,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ===========================================================================
+  // TABLET / DESKTOP WIDGETS (original UI)
+  // ===========================================================================
 
   Widget customHeroBanner(bool isDesktop, bool isTablet) {
     return Container(
@@ -216,7 +507,14 @@ class _QuickTechHomePageState extends State<QuickTechHomePage> {
             runSpacing: 8,
             crossAxisAlignment: WrapCrossAlignment.center,
             children: [
+          
               _buildActionButton(
+                icon: Icons.domain_add_rounded,
+                label: 'New Property',
+                isPrimary: false,
+                onTap: () => Get.toNamed(AppRoutes.addNewProperty),
+               // onTap: () => Get.to(() => const QuickTechAddNewPropertyScreen()),
+              ),    _buildActionButton(
                 icon: Icons.add_home_work_rounded,
                 label: 'Add Room',
                 isPrimary: true,
@@ -229,13 +527,6 @@ class _QuickTechHomePageState extends State<QuickTechHomePage> {
                     Get.snackbar('Notice', 'Please add a property first before adding rooms');
                   }
                 },
-              ),
-              _buildActionButton(
-                icon: Icons.domain_add_rounded,
-                label: 'New Property',
-                isPrimary: false,
-                onTap: () => Get.toNamed(AppRoutes.addNewProperty),
-               // onTap: () => Get.to(() => const QuickTechAddNewPropertyScreen()),
               ),
               _buildActionButton(
                 icon: Icons.account_balance_wallet_outlined,

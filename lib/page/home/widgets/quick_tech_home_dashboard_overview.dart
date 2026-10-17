@@ -1,4 +1,3 @@
-
 import '../../../consts/consts.dart';
 
 class QuickTechHomeDashboardOverview extends StatelessWidget {
@@ -42,7 +41,7 @@ class QuickTechHomeDashboardOverview extends StatelessWidget {
                 "Error",
                 "Please select a property first.",
                 snackPosition: SnackPosition.BOTTOM,
-                backgroundColor: Colors.redAccent.withValues(alpha:0.8),
+                backgroundColor: Colors.redAccent.withValues(alpha: 0.8),
                 colorText: Colors.white,
               );
               return;
@@ -74,7 +73,7 @@ class QuickTechHomeDashboardOverview extends StatelessWidget {
         builder: (context, constraints) {
           if (constraints.maxWidth >= 1050) {
             return _DesktopOverviewWidget(items: items);
-          } else if (constraints.maxWidth >= 550) {
+          } else if (constraints.maxWidth >= 600) {
             return _TabletOverviewWidget(items: items);
           } else {
             return _MobileOverviewWidget(items: items);
@@ -87,6 +86,45 @@ class QuickTechHomeDashboardOverview extends StatelessWidget {
   Widget _buildLoadingGrid(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
+        // Mobile loading (new UI)
+        if (constraints.maxWidth < 600) {
+          return GridView.builder(
+            padding: EdgeInsets.zero,
+            physics: const NeverScrollableScrollPhysics(),
+            shrinkWrap: true,
+            itemCount: 4,
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2,
+              mainAxisSpacing: 12,
+              crossAxisSpacing: 12,
+              mainAxisExtent: 96,
+            ),
+            itemBuilder: (context, index) {
+              return Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: mainColor.withValues(alpha: 0.5), width: 1.5),
+                ),
+                padding: const EdgeInsets.all(14),
+                child: Shimmer.fromColors(
+                  baseColor: Colors.grey.shade200,
+                  highlightColor: Colors.grey.shade50,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(width: 90, height: 12, color: Colors.white),
+                      const SizedBox(height: 10),
+                      Container(width: 60, height: 20, color: Colors.white),
+                    ],
+                  ),
+                ),
+              );
+            },
+          );
+        }
+
+        // Tablet / Desktop loading (original UI)
         final count = constraints.maxWidth >= 1050
             ? 5
             : (constraints.maxWidth >= 720 ? 3 : 2);
@@ -142,7 +180,7 @@ class QuickTechHomeDashboardOverview extends StatelessWidget {
 // Screen Size Specific Widgets
 // ---------------------------------------------------------------------------
 
-/// Desktop Layout (5 items in a single row or balanced responsive grid)
+/// Desktop Layout (original UI)
 class _DesktopOverviewWidget extends StatelessWidget {
   final List<_OverviewItemData> items;
   const _DesktopOverviewWidget({required this.items});
@@ -167,7 +205,7 @@ class _DesktopOverviewWidget extends StatelessWidget {
   }
 }
 
-/// Tablet Layout (3 columns on wide tablet, 2 columns on compact tablet)
+/// Tablet Layout (original UI)
 class _TabletOverviewWidget extends StatelessWidget {
   final List<_OverviewItemData> items;
   const _TabletOverviewWidget({required this.items});
@@ -198,7 +236,7 @@ class _TabletOverviewWidget extends StatelessWidget {
   }
 }
 
-/// Mobile Layout (2 columns)
+/// Mobile Layout (new UI, 2 columns)
 class _MobileOverviewWidget extends StatelessWidget {
   final List<_OverviewItemData> items;
   const _MobileOverviewWidget({required this.items});
@@ -212,19 +250,77 @@ class _MobileOverviewWidget extends StatelessWidget {
       itemCount: items.length,
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 2,
-        mainAxisSpacing: 12,
-        crossAxisSpacing: 12,
-        mainAxisExtent: 115,
+        mainAxisSpacing: 14,
+        crossAxisSpacing: 14,
+        mainAxisExtent: 96,
       ),
       itemBuilder: (context, index) {
-        return _ModernStatCard(item: items[index], isCompact: true);
+        return _MobileStatCard(item: items[index]);
       },
     );
   }
 }
 
 // ---------------------------------------------------------------------------
-// Modern Stat Card Component
+// Mobile Stat Card (new UI)
+// ---------------------------------------------------------------------------
+
+class _MobileStatCard extends StatelessWidget {
+  final _OverviewItemData item;
+
+  const _MobileStatCard({required this.item});
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(16),
+      child: InkWell(
+        onTap: item.onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: mainColor, width: 1.5),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: [
+              Text(
+                item.title,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: QuickTechAppTextStyle.subtitle().copyWith(
+                  fontSize: 13,
+                  color: Colors.grey.shade600,
+                  fontWeight: FontWeight.w500,
+                  height: 1.25,
+                ),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                item.value,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: QuickTechAppTextStyle.headline4().copyWith(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                  color: textColor,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Modern Stat Card Component (tablet / desktop - original UI)
 // ---------------------------------------------------------------------------
 
 class _ModernStatCard extends StatefulWidget {

@@ -179,7 +179,7 @@ class QuickTechAppTextStyle {
     return GoogleFonts.poppins(
       textStyle: TextStyle(
         color: color,
-        fontSize: 12.sp,
+        fontSize: 11.sp,
       ),
     );
   }

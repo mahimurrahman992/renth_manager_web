@@ -193,7 +193,7 @@ class DashboardController extends GetxController {
       if (response.statusCode == 200) {
         var data = jsonDecode(response.body);
         var newDashboard = DashboardModel.fromJson(data);
-
+debugPrint("Manager Dashboard:${response.body}");
         if (page == 1) {
           dashboard.value = newDashboard;
           allBookings.assignAll(newDashboard.bookings?.data ?? []);
